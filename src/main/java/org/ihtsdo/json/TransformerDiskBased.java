@@ -5,6 +5,13 @@
  */
 package org.ihtsdo.json;
 
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.Mongo;
+import com.mongodb.MongoException;
+import com.mongodb.BasicDBObject;
+import org.bson.Document;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -859,8 +866,13 @@ public class TransformerDiskBased {
         getCharConvTable();
 		FileOutputStream fos = new FileOutputStream(fileName);
 		OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
-		BufferedWriter bw = new BufferedWriter(osw);
+		// BufferedWriter bw = new BufferedWriter(osw);
 		Gson gson = new Gson();
+
+		Mongo mongo = new Mongo("localhost", 27017);
+    	DB db = mongo.getDB("es-edition");
+		DBCollection snomedCollection = null ;
+    	snomedCollection = db.getCollection("20170731");
 
 		List<LightDescription> listLD = new ArrayList<LightDescription>();
 		List<Description> listD = new ArrayList<Description>();
@@ -1239,15 +1251,19 @@ public class TransformerDiskBased {
 				cpt.setMemberships(listRM);
 			}
 
-			bw.append(gson.toJson(cpt).toString());
-			bw.append(sep);
+			// Document doc = Document.parse(gson.toJson(cpt));
+			BasicDBObject obj = BasicDBObject.parse(gson.toJson(cpt));
+			snomedCollection.insert(obj);
+			
+			// bw.append(gson.toJson(cpt).toString());
+			// bw.append(sep);
 
-            if (!firstWritten) {
-                firstWritten = true;
-                //System.out.println(gson.toJson(cpt).toString());
-            }
+            // if (!firstWritten) {
+            //     firstWritten = true;
+            //     //System.out.println(gson.toJson(cpt).toString());
+            // }
 		}
-		bw.close();
+		// bw.close();
 		calculatedStatedAncestors=null;
 		calculatedInferredAncestors=null;
 		calculatedStatedAncestorsForRelType=null;

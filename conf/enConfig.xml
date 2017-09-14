@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+	<processInMemory>false</processInMemory>
     <defaultTermLangCode>en</defaultTermLangCode>
     <defaultTermDescriptionType>900000000000003001</defaultTermDescriptionType>
     <defaultTermLanguageRefset>900000000000509007</defaultTermLanguageRefset>
@@ -10,7 +11,7 @@
     <expirationTime>$EXP_TIME</expirationTime>
     <outputFolder>en-edition</outputFolder>
     <foldersBaselineLoad>
-        <folder>$PATH_TO_SNOMED_RELEASE/Snapshot</folder>
+        <folder>/media/sam/040570A25F3AAE5D/SnomedCT_InternationalRF2_PRODUCTION_20170731T150000Z/Snapshot/</folder>
     </foldersBaselineLoad>
     <modulesToIgnoreBaselineLoad>
     </modulesToIgnoreBaselineLoad>
