@@ -20,6 +20,9 @@ public class TransformerConfig {
     private boolean createCompleteConceptsFile;
     private boolean processInMemory;
 
+    private String host;
+    private Integer port;
+
     private HashSet<String> foldersBaselineLoad;
     private ArrayList<String> modulesToIgnoreBaselineLoad;
 
@@ -71,6 +74,22 @@ public class TransformerConfig {
 
     public void setEditionName(String editionName) {
         this.editionName = editionName;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public Integer getPort() {
+        return port;
+    }
+
+    public void setPort(Integer port) {
+        this.port = port;
     }
 
     public String getDatabaseName() {

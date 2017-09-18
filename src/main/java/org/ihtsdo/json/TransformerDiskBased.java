@@ -99,6 +99,10 @@ public class TransformerDiskBased {
 	private Map<String,List<String>> calculatedStatedAncestorsForRelType;
 	private String[] wordSeparators;
 
+	private Mongo mongoConnection;
+    private DB db;
+
+
     public TransformerDiskBased() throws IOException {
 		langCodes = new HashMap<String, String>();
 		langCodes.put("en", "english");
@@ -146,6 +150,10 @@ public class TransformerDiskBased {
 			calculatedStatedAncestorsForRelType=DBMaker.newTempHashMap();
         }
 
+		System.out.println("Open Mongo Collection");
+		mongoConnection = new Mongo(config.getHost(), config.getPort());
+    	db = mongoConnection.getDB(config.getDatabaseName());
+
         notLeafInferred=new HashSet<String>();
         notLeafStated=new HashSet<String>();
 
@@ -189,9 +197,10 @@ public class TransformerDiskBased {
         completeDefaultTerm();
         File output = new File(config.getOutputFolder());
         output.mkdirs();
-        createConceptsJsonFile(config.getOutputFolder() + "/concepts.json", config.isCreateCompleteConceptsFile());
-        createTextIndexFile(config.getOutputFolder() + "/text-index.json");
-        createManifestFile(config.getOutputFolder() + "/manifest.json");
+
+        createConceptsJsonFile("v" + config.getEffectiveTime(), config.isCreateCompleteConceptsFile());
+        createTextIndexFile("v"  + config.getEffectiveTime() + "tx");
+        createManifestFile("resources");
 
     }
 
@@ -862,17 +871,16 @@ public class TransformerDiskBased {
 	}
 
 	public void createConceptsJsonFile(String fileName, boolean createCompleteVersion) throws FileNotFoundException, UnsupportedEncodingException, IOException {
-		System.out.println("Starting creation of " + fileName);
+		System.out.println("Starting getCharConvTable");
+		List<BasicDBObject> documents = new ArrayList<BasicDBObject>();
         getCharConvTable();
-		FileOutputStream fos = new FileOutputStream(fileName);
-		OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
+		System.out.println("Starting creation of " + fileName);
+		// FileOutputStream fos = new FileOutputStream(fileName);
+		// OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
 		// BufferedWriter bw = new BufferedWriter(osw);
 		Gson gson = new Gson();
 
-		Mongo mongo = new Mongo("localhost", 27017);
-    	DB db = mongo.getDB("es-edition");
-		DBCollection snomedCollection = null ;
-    	snomedCollection = db.getCollection("20170731");
+		DBCollection snomedCollection = db.getCollection(fileName);
 
 		List<LightDescription> listLD = new ArrayList<LightDescription>();
 		List<Description> listD = new ArrayList<Description>();
@@ -1251,9 +1259,18 @@ public class TransformerDiskBased {
 				cpt.setMemberships(listRM);
 			}
 
-			// Document doc = Document.parse(gson.toJson(cpt));
 			BasicDBObject obj = BasicDBObject.parse(gson.toJson(cpt));
 			snomedCollection.insert(obj);
+			
+			// documents.add(obj);
+
+			// if (documents.size() > 1000) {
+			// 	documents = new ArrayList<BasicDBObject>();
+			// }
+
+			// Document doc = Document.parse(gson.toJson(cpt));
+			
+			
 			
 			// bw.append(gson.toJson(cpt).toString());
 			// bw.append(sep);
@@ -1396,9 +1413,11 @@ public class TransformerDiskBased {
 	public void createTextIndexFile(String fileName) throws FileNotFoundException, UnsupportedEncodingException, IOException {
 		getCharConvTable();
 		System.out.println("Starting creation of " + fileName);
-		FileOutputStream fos = new FileOutputStream(fileName);
-		OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
-		BufferedWriter bw = new BufferedWriter(osw);
+		// FileOutputStream fos = new FileOutputStream(fileName);
+		// OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
+		// BufferedWriter bw = new BufferedWriter(osw);
+
+		DBCollection snomedCollection = db.getCollection(fileName);
 		Gson gson = new Gson();
         int count = 0;
 		for (String conceptId : descriptions.keySet()) {
@@ -1455,12 +1474,14 @@ public class TransformerDiskBased {
                     }
                 }
 
-				bw.append(gson.toJson(d).toString());
-				bw.append(sep);
+				BasicDBObject obj = BasicDBObject.parse(gson.toJson(d));
+				snomedCollection.insert(obj);
+				// bw.append(gson.toJson(d).toString());
+				// bw.append(sep);
 			}
 		}
 
-		bw.close();
+		// bw.close();
         System.out.println(".");
 		System.out.println(fileName + " Done");
 	}
@@ -1501,10 +1522,11 @@ public class TransformerDiskBased {
 	}
     public void createManifestFile(String fileName) throws FileNotFoundException, UnsupportedEncodingException, IOException {
         System.out.println("Starting creation of " + fileName);
-        FileOutputStream fos = new FileOutputStream(fileName);
-        OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
-        BufferedWriter bw = new BufferedWriter(osw);
+        // FileOutputStream fos = new FileOutputStream(fileName);
+        // OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
+        // BufferedWriter bw = new BufferedWriter(osw);
         Gson gson = new Gson();
+		DBCollection snomedCollection = db.getCollection(fileName);
 
 		if (modulesSet!=null){
 			for (String moduleId : modulesSet) {
@@ -1542,9 +1564,13 @@ public class TransformerDiskBased {
 				manifest.getRefsets().add(refsetDescriptor);
 			}
 		}
-        bw.append(gson.toJson(manifest).toString());
 
-        bw.close();
+		BasicDBObject obj = BasicDBObject.parse(gson.toJson(manifest));
+		snomedCollection.insert(obj);
+
+        // bw.append(gson.toJson(manifest).toString());
+
+        // bw.close();
         System.out.println(fileName + " Done");
     }
 

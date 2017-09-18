@@ -38,6 +38,9 @@ public class ConfigRunner {
         runnableConfig.setExpirationTime(xmlConfig.getString("expirationTime"));
         runnableConfig.setOutputFolder(xmlConfig.getString("outputFolder"));
 
+        runnableConfig.setHost(xmlConfig.getString("host"));
+        runnableConfig.setPort(Integer.parseInt(xmlConfig.getString("port")));
+
         Object prop = xmlConfig.getProperty("foldersBaselineLoad.folder");
         if (prop instanceof Collection) {
             for (String loopProp : (Collection<String>)prop) {
