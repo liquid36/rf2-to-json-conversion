@@ -1,0 +1,7 @@
+module.exports = {
+    data_path: '../data',
+    config_file: '../conf/esConfig.xml',
+    jar_file: '../target/rf2-to-json-conversion-1.2-jar-with-dependencies.jar',
+    heap_size: '12',
+    timeout: 1000 * 60 * 5
+}

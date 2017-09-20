@@ -19,3 +19,7 @@ release.properties
 .classpath
 .project
 .settings
+
+data/
+watcher/node_modules/
+watcher/config.private.js

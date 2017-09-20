@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-    <processInMemory>false</processInMemory>
+    <processInMemory>true</processInMemory>
     <defaultTermLangCode>es</defaultTermLangCode>
     <defaultTermDescriptionType>900000000000003001</defaultTermDescriptionType>
     <defaultTermLanguageRefset>450828004</defaultTermLanguageRefset>
@@ -8,16 +8,19 @@
     <editionName>Spanish Edition</editionName>
     <createCompleteConceptsFile>false</createCompleteConceptsFile>
     <databaseName>es-edition</databaseName>
-    <effectiveTime>20150430</effectiveTime>
-    <expirationTime>20160501</expirationTime>
+    <effectiveTime>20170731</effectiveTime>
+    <expirationTime>20180731</expirationTime>
     <outputFolder>es-edition</outputFolder>
+    <host>localhost</host>
+    <port>27017</port>
     <foldersBaselineLoad>
-		<folder>$PATH_TO_SNOMED_RELEASE/Snapshot</folder>
-    	<folder>$PATH_TO_EXTENSION_RELEASE/Snapshot</folder>
+        <folder> ./data/SnomedCT_InternationalRF2_PRODUCTION_20170731T150000Z/Snapshot/</folder>
+        <folder> ./data/SnomedCT_SpanishRelease-es_Production_20170430T120000/RF2Release/</folder>
     </foldersBaselineLoad>
     <modulesToIgnoreBaselineLoad>
     </modulesToIgnoreBaselineLoad>
     <foldersExtensionLoad>
+        <folder>./data/Neuquen/</folder>
     </foldersExtensionLoad>
     <modulesToIgnoreExtensionLoad>
     </modulesToIgnoreExtensionLoad>
