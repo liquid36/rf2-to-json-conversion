@@ -171,6 +171,7 @@ public class TransformerDiskBased {
 			mongoConnection = new MongoClient(server);
 		}
 		db = mongoConnection.getDatabase(config.getDatabaseName());
+		db.drop();
 
         notLeafInferred=new HashSet<String>();
         notLeafStated=new HashSet<String>();
