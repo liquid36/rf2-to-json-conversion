@@ -5,11 +5,17 @@
  */
 package org.ihtsdo.json;
 
-import com.mongodb.DB;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.MongoCredential;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 import com.mongodb.BasicDBObject;
+import com.mongodb.ServerAddress;
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
+
 import org.bson.Document;
 
 import java.io.BufferedReader;
@@ -99,8 +105,8 @@ public class TransformerDiskBased {
 	private Map<String,List<String>> calculatedStatedAncestorsForRelType;
 	private String[] wordSeparators;
 
-	private Mongo mongoConnection;
-    private DB db;
+	private MongoClient mongoConnection;
+    private MongoDatabase db;
 
 
     public TransformerDiskBased() throws IOException {
@@ -151,56 +157,74 @@ public class TransformerDiskBased {
         }
 
 		System.out.println("Open Mongo Collection");
-		mongoConnection = new Mongo(config.getHost(), config.getPort());
-    	db = mongoConnection.getDB(config.getDatabaseName());
+		// mongoConnection = new Mongo(config.getHost(), config.getPort());
+    	// db = mongoConnection.getDB(config.getDatabaseName());
 
-        notLeafInferred=new HashSet<String>();
-        notLeafStated=new HashSet<String>();
+		ServerAddress server = new ServerAddress(config.getHost(), config.getPort());
+		if (config.getUser().length() > 0) {
+			MongoCredential credentials = MongoCredential.createCredential(config.getUser(), config.getAdmin(), config.getPassword().toCharArray());
+			List<MongoCredential> list = new ArrayList<MongoCredential>();
+			list.add(credentials);
+			mongoConnection = new MongoClient(server, list);
+		} else {
+			mongoConnection = new MongoClient(server);
+		}
+		db = mongoConnection.getDatabase(config.getDatabaseName());
 
-        refsetsCount = new HashMap<String, Integer>();
-        refsetsTypes = new HashMap<String, String>();
 
-        setDefaultLangCode(config.getDefaultTermLangCode());
-        setDefaultTermType(config.getDefaultTermDescriptionType());
-        setDefaultLangRefset(config.getDefaultTermLanguageRefset());
+		MongoCollection<Document> aa = db.getCollection("v20171101tx");
+		
+		System.out.println(aa.count());
 
-        manifest = new ResourceSetManifest();
-        manifest.setDatabaseName(config.getDatabaseName());
-        manifest.setTextIndexNormalized(config.isNormalizeTextIndex());
-        manifest.setEffectiveTime(config.getEffectiveTime());
-        manifest.setDefaultTermLangCode(config.getDefaultTermLangCode());
-        manifest.setCollectionName(config.getEffectiveTime());
-        manifest.setDefaultTermLangRefset(config.getDefaultTermLanguageRefset());
-        manifest.setExpirationDate(config.getExpirationTime());
-        manifest.setDefaultTermType(config.getDefaultTermDescriptionType());
-        manifest.setResourceSetName(config.getEditionName());
+		return;
 
-        refsetsSet = new HashSet<String>();
-        langRefsetsSet = new HashSet<String>();
-        modulesSet = new HashSet<String>();
+        // notLeafInferred=new HashSet<String>();
+        // notLeafStated=new HashSet<String>();
 
-        System.out.println("######## Processing Baseline ########");
-        HashSet<String> files = getFilesFromFolders(config.getFoldersBaselineLoad());
-        System.out.println("Files: " + files.size());
-        processFiles(files, config.getModulesToIgnoreBaselineLoad());
+        // refsetsCount = new HashMap<String, Integer>();
+        // refsetsTypes = new HashMap<String, String>();
 
-        if (config.getFoldersExtensionLoad() != null && config.getModulesToIgnoreExtensionLoad() != null) {
-            System.out.println("######## Processing Extensions ########");
-            files = getFilesFromFolders(config.getFoldersExtensionLoad());
-            System.out.println("Files: " + files.size());
-            processFiles(files, config.getModulesToIgnoreExtensionLoad());
-        } else {
-            System.out.println("######## No Extensions options configured ########");
-        }
+        // setDefaultLangCode(config.getDefaultTermLangCode());
+        // setDefaultTermType(config.getDefaultTermDescriptionType());
+        // setDefaultLangRefset(config.getDefaultTermLanguageRefset());
 
-		getDescendantsCount();
-        completeDefaultTerm();
-        File output = new File(config.getOutputFolder());
-        output.mkdirs();
+        // manifest = new ResourceSetManifest();
+        // manifest.setDatabaseName(config.getDatabaseName());
+        // manifest.setTextIndexNormalized(config.isNormalizeTextIndex());
+        // manifest.setEffectiveTime(config.getEffectiveTime());
+        // manifest.setDefaultTermLangCode(config.getDefaultTermLangCode());
+        // manifest.setCollectionName(config.getEffectiveTime());
+        // manifest.setDefaultTermLangRefset(config.getDefaultTermLanguageRefset());
+        // manifest.setExpirationDate(config.getExpirationTime());
+        // manifest.setDefaultTermType(config.getDefaultTermDescriptionType());
+        // manifest.setResourceSetName(config.getEditionName());
 
-        createConceptsJsonFile("v" + config.getEffectiveTime(), config.isCreateCompleteConceptsFile());
-        createTextIndexFile("v"  + config.getEffectiveTime() + "tx");
-        createManifestFile("resources");
+        // refsetsSet = new HashSet<String>();
+        // langRefsetsSet = new HashSet<String>();
+        // modulesSet = new HashSet<String>();
+
+        // System.out.println("######## Processing Baseline ########");
+        // HashSet<String> files = getFilesFromFolders(config.getFoldersBaselineLoad());
+        // System.out.println("Files: " + files.size());
+        // processFiles(files, config.getModulesToIgnoreBaselineLoad());
+
+        // if (config.getFoldersExtensionLoad() != null && config.getModulesToIgnoreExtensionLoad() != null) {
+        //     System.out.println("######## Processing Extensions ########");
+        //     files = getFilesFromFolders(config.getFoldersExtensionLoad());
+        //     System.out.println("Files: " + files.size());
+        //     processFiles(files, config.getModulesToIgnoreExtensionLoad());
+        // } else {
+        //     System.out.println("######## No Extensions options configured ########");
+        // }
+
+		// getDescendantsCount();
+        // completeDefaultTerm();
+        // File output = new File(config.getOutputFolder());
+        // output.mkdirs();
+
+        // createConceptsJsonFile("v" + config.getEffectiveTime(), config.isCreateCompleteConceptsFile());
+        // createTextIndexFile("v"  + config.getEffectiveTime() + "tx");
+        // createManifestFile("resources");
 
     }
 
@@ -880,7 +904,7 @@ public class TransformerDiskBased {
 		// BufferedWriter bw = new BufferedWriter(osw);
 		Gson gson = new Gson();
 
-		DBCollection snomedCollection = db.getCollection(fileName);
+		MongoCollection<Document> snomedCollection = db.getCollection(fileName);
 
 		List<LightDescription> listLD = new ArrayList<LightDescription>();
 		List<Description> listD = new ArrayList<Description>();
@@ -1259,8 +1283,8 @@ public class TransformerDiskBased {
 				cpt.setMemberships(listRM);
 			}
 
-			BasicDBObject obj = BasicDBObject.parse(gson.toJson(cpt));
-			snomedCollection.insert(obj);
+			Document obj = Document.parse(gson.toJson(cpt));
+			snomedCollection.insertOne(obj);
 			
 			// documents.add(obj);
 
@@ -1417,7 +1441,7 @@ public class TransformerDiskBased {
 		// OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
 		// BufferedWriter bw = new BufferedWriter(osw);
 
-		DBCollection snomedCollection = db.getCollection(fileName);
+		MongoCollection<Document> snomedCollection = db.getCollection(fileName);
 		Gson gson = new Gson();
         int count = 0;
 		for (String conceptId : descriptions.keySet()) {
@@ -1474,8 +1498,8 @@ public class TransformerDiskBased {
                     }
                 }
 
-				BasicDBObject obj = BasicDBObject.parse(gson.toJson(d));
-				snomedCollection.insert(obj);
+				Document obj = Document.parse(gson.toJson(d));
+				snomedCollection.insertOne(obj);
 				// bw.append(gson.toJson(d).toString());
 				// bw.append(sep);
 			}
@@ -1526,7 +1550,7 @@ public class TransformerDiskBased {
         // OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");
         // BufferedWriter bw = new BufferedWriter(osw);
         Gson gson = new Gson();
-		DBCollection snomedCollection = db.getCollection(fileName);
+		MongoCollection<Document> snomedCollection = db.getCollection(fileName);
 
 		if (modulesSet!=null){
 			for (String moduleId : modulesSet) {
@@ -1565,8 +1589,8 @@ public class TransformerDiskBased {
 			}
 		}
 
-		BasicDBObject obj = BasicDBObject.parse(gson.toJson(manifest));
-		snomedCollection.insert(obj);
+		Document obj = Document.parse(gson.toJson(manifest));
+		snomedCollection.insertOne(obj);
 
         // bw.append(gson.toJson(manifest).toString());
 

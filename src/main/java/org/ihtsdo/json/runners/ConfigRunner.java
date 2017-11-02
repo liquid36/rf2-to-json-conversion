@@ -41,6 +41,10 @@ public class ConfigRunner {
         runnableConfig.setHost(xmlConfig.getString("host"));
         runnableConfig.setPort(Integer.parseInt(xmlConfig.getString("port")));
 
+        runnableConfig.setUser(xmlConfig.getString("user"));
+        runnableConfig.setAdmin(xmlConfig.getString("admin"));
+        runnableConfig.setPassword(xmlConfig.getString("password"));
+
         Object prop = xmlConfig.getProperty("foldersBaselineLoad.folder");
         if (prop instanceof Collection) {
             for (String loopProp : (Collection<String>)prop) {

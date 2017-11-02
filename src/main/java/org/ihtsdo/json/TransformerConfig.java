@@ -23,6 +23,10 @@ public class TransformerConfig {
     private String host;
     private Integer port;
 
+    private String user;
+    private String admin;
+    private String password;
+
     private HashSet<String> foldersBaselineLoad;
     private ArrayList<String> modulesToIgnoreBaselineLoad;
 
@@ -90,6 +94,30 @@ public class TransformerConfig {
 
     public void setPort(Integer port) {
         this.port = port;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(String admin) {
+        this.admin = admin;
     }
 
     public String getDatabaseName() {
