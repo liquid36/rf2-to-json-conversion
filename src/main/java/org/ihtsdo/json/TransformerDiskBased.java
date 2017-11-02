@@ -5,6 +5,7 @@
  */
 package org.ihtsdo.json;
 
+import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.MongoCredential;
@@ -171,59 +172,52 @@ public class TransformerDiskBased {
 		}
 		db = mongoConnection.getDatabase(config.getDatabaseName());
 
+        notLeafInferred=new HashSet<String>();
+        notLeafStated=new HashSet<String>();
 
-		MongoCollection<Document> aa = db.getCollection("v20171101tx");
-		
-		System.out.println(aa.count());
+        refsetsCount = new HashMap<String, Integer>();
+        refsetsTypes = new HashMap<String, String>();
 
-		return;
+        setDefaultLangCode(config.getDefaultTermLangCode());
+        setDefaultTermType(config.getDefaultTermDescriptionType());
+        setDefaultLangRefset(config.getDefaultTermLanguageRefset());
 
-        // notLeafInferred=new HashSet<String>();
-        // notLeafStated=new HashSet<String>();
+        manifest = new ResourceSetManifest();
+        manifest.setDatabaseName(config.getDatabaseName());
+        manifest.setTextIndexNormalized(config.isNormalizeTextIndex());
+        manifest.setEffectiveTime(config.getEffectiveTime());
+        manifest.setDefaultTermLangCode(config.getDefaultTermLangCode());
+        manifest.setCollectionName(config.getEffectiveTime());
+        manifest.setDefaultTermLangRefset(config.getDefaultTermLanguageRefset());
+        manifest.setExpirationDate(config.getExpirationTime());
+        manifest.setDefaultTermType(config.getDefaultTermDescriptionType());
+        manifest.setResourceSetName(config.getEditionName());
 
-        // refsetsCount = new HashMap<String, Integer>();
-        // refsetsTypes = new HashMap<String, String>();
+        refsetsSet = new HashSet<String>();
+        langRefsetsSet = new HashSet<String>();
+        modulesSet = new HashSet<String>();
 
-        // setDefaultLangCode(config.getDefaultTermLangCode());
-        // setDefaultTermType(config.getDefaultTermDescriptionType());
-        // setDefaultLangRefset(config.getDefaultTermLanguageRefset());
+        System.out.println("######## Processing Baseline ########");
+        HashSet<String> files = getFilesFromFolders(config.getFoldersBaselineLoad());
+        System.out.println("Files: " + files.size());
+        processFiles(files, config.getModulesToIgnoreBaselineLoad());
 
-        // manifest = new ResourceSetManifest();
-        // manifest.setDatabaseName(config.getDatabaseName());
-        // manifest.setTextIndexNormalized(config.isNormalizeTextIndex());
-        // manifest.setEffectiveTime(config.getEffectiveTime());
-        // manifest.setDefaultTermLangCode(config.getDefaultTermLangCode());
-        // manifest.setCollectionName(config.getEffectiveTime());
-        // manifest.setDefaultTermLangRefset(config.getDefaultTermLanguageRefset());
-        // manifest.setExpirationDate(config.getExpirationTime());
-        // manifest.setDefaultTermType(config.getDefaultTermDescriptionType());
-        // manifest.setResourceSetName(config.getEditionName());
+        if (config.getFoldersExtensionLoad() != null && config.getModulesToIgnoreExtensionLoad() != null) {
+            System.out.println("######## Processing Extensions ########");
+            files = getFilesFromFolders(config.getFoldersExtensionLoad());
+            System.out.println("Files: " + files.size());
+            processFiles(files, config.getModulesToIgnoreExtensionLoad());
+        } else {
+            System.out.println("######## No Extensions options configured ########");
+        }
 
-        // refsetsSet = new HashSet<String>();
-        // langRefsetsSet = new HashSet<String>();
-        // modulesSet = new HashSet<String>();
-
-        // System.out.println("######## Processing Baseline ########");
-        // HashSet<String> files = getFilesFromFolders(config.getFoldersBaselineLoad());
-        // System.out.println("Files: " + files.size());
-        // processFiles(files, config.getModulesToIgnoreBaselineLoad());
-
-        // if (config.getFoldersExtensionLoad() != null && config.getModulesToIgnoreExtensionLoad() != null) {
-        //     System.out.println("######## Processing Extensions ########");
-        //     files = getFilesFromFolders(config.getFoldersExtensionLoad());
-        //     System.out.println("Files: " + files.size());
-        //     processFiles(files, config.getModulesToIgnoreExtensionLoad());
-        // } else {
-        //     System.out.println("######## No Extensions options configured ########");
-        // }
-
-		// getDescendantsCount();
-        // completeDefaultTerm();
-        // File output = new File(config.getOutputFolder());
-        // output.mkdirs();
+		getDescendantsCount();
+        completeDefaultTerm();
+        File output = new File(config.getOutputFolder());
+        output.mkdirs();
 
         // createConceptsJsonFile("v" + config.getEffectiveTime(), config.isCreateCompleteConceptsFile());
-        // createTextIndexFile("v"  + config.getEffectiveTime() + "tx");
+        createTextIndexFile("v"  + config.getEffectiveTime() + "tx");
         // createManifestFile("resources");
 
     }
@@ -1505,7 +1499,29 @@ public class TransformerDiskBased {
 			}
 		}
 
+		List<IndexModel> list = new ArrayList<IndexModel>();
+		Document descriptionId = new Document();
+		descriptionId.append("descriptionId",1);
+
+		Document term1 = new Document();
+		term1.append("term", "text");
+
+		Document term2 = new Document();
+		term2.append("term", 1);
+
+		Document words = new Document();
+		words.append("words", 1);
+
+		list.add(new IndexModel(descriptionId));
+		list.add(new IndexModel(term1));
+		list.add(new IndexModel(term2));
+		list.add(new IndexModel(words));
+		snomedCollection.createIndexes(list);
+
 		// bw.close();
+
+
+
         System.out.println(".");
 		System.out.println(fileName + " Done");
 	}
