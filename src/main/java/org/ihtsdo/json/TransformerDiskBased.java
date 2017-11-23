@@ -170,9 +170,11 @@ public class TransformerDiskBased {
 		} else {
 			mongoConnection = new MongoClient(server);
 		}
+
 		db = mongoConnection.getDatabase(config.getDatabaseName());
-		MongoCollection<Document> snomedCollection = db.getCollection("v"  + config.getEffectiveTime() + "tx");
-		snomedCollection.drop();
+
+		// MongoCollection<Document> snomedCollection = db.getCollection("v"  + config.getEffectiveTime() + "tx");
+		// snomedCollection.drop();
 
         notLeafInferred=new HashSet<String>();
         notLeafStated=new HashSet<String>();
@@ -901,6 +903,7 @@ public class TransformerDiskBased {
 		Gson gson = new Gson();
 
 		MongoCollection<Document> snomedCollection = db.getCollection(fileName);
+		snomedCollection.drop();
 
 		List<LightDescription> listLD = new ArrayList<LightDescription>();
 		List<Description> listD = new ArrayList<Description>();
@@ -1300,6 +1303,72 @@ public class TransformerDiskBased {
             //     //System.out.println(gson.toJson(cpt).toString());
             // }
 		}
+
+		System.out.println("Starting creation of indexes");
+		List<IndexModel> list = new ArrayList<IndexModel>();
+		Document descriptionId = new Document();
+		descriptionId.append("conceptId", 1);
+
+		Document term1 = new Document();
+		term1.append("relationships.target.conceptId", 1);
+
+		Document term2 = new Document();
+		term2.append("statedRelationships.target.conceptId", 1);
+
+		Document term3 = new Document();
+		term3.append("additionalRelationships.target.conceptId", 1);
+
+		Document term4 = new Document();
+		term4.append("memberships.refset.conceptId", 1);
+
+		Document inferredAncestors = new Document();
+		inferredAncestors.append("inferredAncestors", 1);
+
+		Document statedAncestors = new Document();
+		statedAncestors.append("statedAncestors", 1);
+
+		Document term5 = new Document();
+		term5.append("statedRelationships.typeInferredAncestors", 1);
+
+		Document term6 = new Document();
+		term6.append("statedRelationships.typeStatedAncestors", 1);
+
+		Document term7 = new Document();
+		term5.append("relationships.typeInferredAncestors", 1);
+
+		Document term8 = new Document();
+		term6.append("relationships.typeStatedAncestors", 1);
+
+		Document term9 = new Document();
+		term5.append("statedRelationships.targetInferredAncestors", 1);
+
+		Document term10 = new Document();
+		term6.append("statedRelationships.targetStatedAncestors", 1);
+
+		Document term11 = new Document();
+		term5.append("relationships.targetInferredAncestors", 1);
+
+		Document term12 = new Document();
+		term6.append("relationships.targetStatedAncestors", 1);
+
+		list.add(new IndexModel(descriptionId));
+		list.add(new IndexModel(term1));
+		list.add(new IndexModel(term2));
+		list.add(new IndexModel(term3));
+		list.add(new IndexModel(term4));
+		list.add(new IndexModel(inferredAncestors));
+		list.add(new IndexModel(statedAncestors));
+		list.add(new IndexModel(term5));
+		list.add(new IndexModel(term6));
+		list.add(new IndexModel(term7));
+		list.add(new IndexModel(term8));
+		list.add(new IndexModel(term9));
+		list.add(new IndexModel(term10));
+		list.add(new IndexModel(term11));
+		list.add(new IndexModel(term12));
+		snomedCollection.createIndexes(list);
+
+
 		// bw.close();
 		calculatedStatedAncestors=null;
 		calculatedInferredAncestors=null;
@@ -1438,6 +1507,8 @@ public class TransformerDiskBased {
 		// BufferedWriter bw = new BufferedWriter(osw);
 
 		MongoCollection<Document> snomedCollection = db.getCollection(fileName);
+		snomedCollection.drop();
+
 		Gson gson = new Gson();
         int count = 0;
 		for (String conceptId : descriptions.keySet()) {
@@ -1500,7 +1571,7 @@ public class TransformerDiskBased {
 				// bw.append(sep);
 			}
 		}
-
+		System.out.println("Starting creation of indexes");
 		List<IndexModel> list = new ArrayList<IndexModel>();
 		Document descriptionId = new Document();
 		descriptionId.append("descriptionId",1);
@@ -1569,6 +1640,7 @@ public class TransformerDiskBased {
         // BufferedWriter bw = new BufferedWriter(osw);
         Gson gson = new Gson();
 		MongoCollection<Document> snomedCollection = db.getCollection(fileName);
+		snomedCollection.drop();
 
 		if (modulesSet!=null){
 			for (String moduleId : modulesSet) {
