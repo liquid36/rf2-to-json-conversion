@@ -32,6 +32,7 @@ public class TransformerConfig {
 
     private HashSet<String> foldersExtensionLoad;
     private ArrayList<String> modulesToIgnoreExtensionLoad;
+	private String version;
 
     public TransformerConfig() {
         foldersBaselineLoad = new HashSet<String>();
@@ -199,4 +200,12 @@ public class TransformerConfig {
     public void setProcessInMemory(boolean processInMemory) {
         this.processInMemory = processInMemory;
     }
+
+	public void setVersion(String version) {
+		this.version=version;
+	}
+
+	public String getVersion() {
+		return version;
+	}
 }
