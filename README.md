@@ -1,3 +1,28 @@
+# ANDES Conversion
+
+Primero de todo adquirir la base de datos de SNOMED, extensión en español y la extensión Neuquén. Preferentemente copiarlas a la carpeta 'data'.
+
+Esta versión del rf2-tojson-conversion impacta directamente sobre Mongo. 
+
+
+### Conversión Manual:
+
+1) Instalar Maven
+2) Ejecutar `mvn install`
+3) Editar los datos en el archivo `conf/esConfig.xml`. Revisar los path de las base de datos y las credenciales de mongo.
+4) Ejecutar `java -Xmx12g -jar target/rf2-to-json-conversion-1.3-SNAPSHOT-jar-with-dependencies.jar ./conf/esConfig.xml`
+
+NOTA: Los nombres de las collecciones van a depender del effectiveTime en el archivo configuración.
+
+### Watcher:
+
+Implementamos un watcher que vigila una carpeta específica y ejecuta la conversión automáticamente. **Requiere tener configurada la conversión manual primero**.
+
+1) Navegar a la carpeta watcher
+2) `npm install`
+3) Completar el config.private.ts (copiar desde config.private.ts.example). Prestar atención a los path relativos.
+4) `node index.js` o `node watcher/index.js` (depende desde donde se ejecuta el proceso).
+
 # RF2 to json conversion utility [![Build Status](https://travis-ci.org/IHTSDO/rf2-to-json-conversion.svg?branch=master)](https://travis-ci.org/IHTSDO/rf2-to-json-conversion) [![Code Climate](https://codeclimate.com/github/IHTSDO/rf2-to-json-conversion/badges/gpa.svg)](https://codeclimate.com/github/IHTSDO/rf2-to-json-conversion)
 
 Conversion of SNOMED CT RF2 files to a JSON format, including pre-computed indexes for common search strategies
@@ -10,7 +35,7 @@ This version (v1.3 and beyond) depends on v2.x of the SCT Snapshot Rest API and 
 
 ## Building (manual instructions)
 
-Build the project using Maven, it will generate an executable jar with embedded dependencies (i.e. "target/rf2-to-json-conversion-1.0-SNAPSHOT-jar-with-dependencies.jar").
+Build the project using Maven, it will generate an executable jar with embedded dependencies (i.e. "target/rf2-to-json-conversion-1.3-SNAPSHOT-jar-with-dependencies.jar").
 
 ## Conversion configuration
 
