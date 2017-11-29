@@ -1,7 +1,17 @@
+/**
+ * data_path {string} Carpeta a vigilar en caso de modificación. 
+ * config_file {string}  Ruta al archivo a ejecutar.
+ * jar_file {string} Ruta la archivo jar compilado
+ * heap_size {integer} Tamaño del heap (en GB) de la maquina virtual de Java. Suele ser alto porque se cuelga el proceso.
+ * timeout {integer} Tiempo de espera antes de empezar a convertir SNOMED. La base de datos suele tener muchos arhivos.
+ *                   Si lo ejecutamos inmediatamente un archivo se modifica puede generar inconsistencias. 
+ */
+
+
 module.exports = {
     data_path: '../data',
     config_file: '../conf/esConfig.xml',
-    jar_file: '../target/rf2-to-json-conversion-1.2-jar-with-dependencies.jar',
+    jar_file: '../target/rf2-to-json-conversion-1.3-jar-with-dependencies.jar',
     heap_size: '12',
     timeout: 1000 * 60 * 5
 }
