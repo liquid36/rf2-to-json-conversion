@@ -6,7 +6,7 @@
     <defaultTermLanguageRefset>450828004</defaultTermLanguageRefset>
     <normalizeTextIndex>true</normalizeTextIndex>
     <editionName>Spanish Edition</editionName>
-    <createCompleteConceptsFile>false</createCompleteConceptsFile>
+    <createCompleteConceptsFile>true</createCompleteConceptsFile>
     <databaseName>es-edition</databaseName>
     <effectiveTime>20170731</effectiveTime>
     <expirationTime>20180731</expirationTime>
