@@ -13,9 +13,11 @@
     <outputFolder>es-edition</outputFolder>
     <host>localhost</host>
     <port>27017</port>
+    <user></user>
+    <password></password>
     <foldersBaselineLoad>
         <folder> ../data/SnomedCT_InternationalRF2_PRODUCTION_20170731T150000Z/Snapshot/</folder>
-        <folder> ../data/SnomedCT_SpanishRelease-es_Production_20170430T120000/RF2Release/</folder>
+        <folder> ../data/SnomedCT_SpanishRelease-es_Production_20170430T120000/RF2Release/Snapshot/</folder>
     </foldersBaselineLoad>
     <modulesToIgnoreBaselineLoad>
     </modulesToIgnoreBaselineLoad>
