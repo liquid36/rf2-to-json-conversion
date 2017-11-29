@@ -216,6 +216,8 @@ public class TransformerDiskBased {
         langRefsetsSet = new HashSet<String>();
         modulesSet = new HashSet<String>();
 
+		System.out.println("######## ANDES SNOMED ########");
+
         System.out.println("######## Processing Baseline ########");
         HashSet<String> files = getFilesFromFolders(config.getFoldersBaselineLoad());
         System.out.println("Files: " + files.size());
@@ -236,9 +238,9 @@ public class TransformerDiskBased {
         File output = new File(config.getOutputFolder());
         output.mkdirs();
 
-        // createConceptsJsonFile("v" + config.getEffectiveTime(), config.isCreateCompleteConceptsFile());
+        createConceptsJsonFile("v" + config.getEffectiveTime(), config.isCreateCompleteConceptsFile());
         createTextIndexFile("v"  + config.getEffectiveTime() + "tx");
-        // createManifestFile("resources");
+        createManifestFile("resources");
 
     }
 
@@ -1332,90 +1334,7 @@ public class TransformerDiskBased {
 
 			Document obj = Document.parse(gson.toJson(cpt));
 			snomedCollection.insertOne(obj);
-			
-			// documents.add(obj);
-
-			// if (documents.size() > 1000) {
-			// 	documents = new ArrayList<BasicDBObject>();
-			// }
-
-			// Document doc = Document.parse(gson.toJson(cpt));
-			
-			
-			
-			// bw.append(gson.toJson(cpt).toString());
-			// bw.append(sep);
-
-            // if (!firstWritten) {
-            //     firstWritten = true;
-            //     //System.out.println(gson.toJson(cpt).toString());
-            // }
 		}
-
-		System.out.println("Starting creation of indexes");
-		List<IndexModel> list = new ArrayList<IndexModel>();
-		Document descriptionId = new Document();
-		descriptionId.append("conceptId", 1);
-
-		Document term1 = new Document();
-		term1.append("relationships.target.conceptId", 1);
-
-		Document term2 = new Document();
-		term2.append("statedRelationships.target.conceptId", 1);
-
-		Document term3 = new Document();
-		term3.append("additionalRelationships.target.conceptId", 1);
-
-		Document term4 = new Document();
-		term4.append("memberships.refset.conceptId", 1);
-
-		Document inferredAncestors = new Document();
-		inferredAncestors.append("inferredAncestors", 1);
-
-		Document statedAncestors = new Document();
-		statedAncestors.append("statedAncestors", 1);
-
-		Document term5 = new Document();
-		term5.append("statedRelationships.typeInferredAncestors", 1);
-
-		Document term6 = new Document();
-		term6.append("statedRelationships.typeStatedAncestors", 1);
-
-		Document term7 = new Document();
-		term5.append("relationships.typeInferredAncestors", 1);
-
-		Document term8 = new Document();
-		term6.append("relationships.typeStatedAncestors", 1);
-
-		Document term9 = new Document();
-		term5.append("statedRelationships.targetInferredAncestors", 1);
-
-		Document term10 = new Document();
-		term6.append("statedRelationships.targetStatedAncestors", 1);
-
-		Document term11 = new Document();
-		term5.append("relationships.targetInferredAncestors", 1);
-
-		Document term12 = new Document();
-		term6.append("relationships.targetStatedAncestors", 1);
-
-		list.add(new IndexModel(descriptionId));
-		list.add(new IndexModel(term1));
-		list.add(new IndexModel(term2));
-		list.add(new IndexModel(term3));
-		list.add(new IndexModel(term4));
-		list.add(new IndexModel(inferredAncestors));
-		list.add(new IndexModel(statedAncestors));
-		list.add(new IndexModel(term5));
-		list.add(new IndexModel(term6));
-		list.add(new IndexModel(term7));
-		list.add(new IndexModel(term8));
-		list.add(new IndexModel(term9));
-		list.add(new IndexModel(term10));
-		list.add(new IndexModel(term11));
-		list.add(new IndexModel(term12));
-		snomedCollection.createIndexes(list);
-
 
 		// bw.close();
 		calculatedStatedAncestors=null;
@@ -1622,7 +1541,64 @@ public class TransformerDiskBased {
 
 		Gson gson = new Gson();
         int count = 0;
-		
+		for (String conceptId : descriptions.keySet()) {
+            count++;
+            if (count % 10000 == 0) {
+                System.out.print(".");
+            }
+			for (LightDescription ldesc : descriptions.get(conceptId)) {
+				TextIndexDescription d = new TextIndexDescription();
+				d.setActive(ldesc.isActive());
+				d.setTerm(ldesc.getTerm());
+				d.setLength(ldesc.getTerm().length());
+				d.setTypeId(ldesc.getType());
+				d.setConceptId(ldesc.getConceptId());
+				d.setDescriptionId(ldesc.getDescriptionId());
+				d.setStringModule(ldesc.getStringModule());
+				//TODO: using String lang names to support compatibility with Mongo 2.4.x text indexes
+				d.setLanguageCode(langCodes.get(ldesc.getLang()));
+				ConceptDescriptor concept = concepts.get(ldesc.getConceptId());
+				d.setConceptModule(concept.getModule().getConceptId());
+				d.setConceptActive(concept.isActive());
+                d.setDefinitionStatus(concept.getDefinitionStatus().getConceptId());
+                d.setFsn(cptFSN.get(conceptId));
+				d.setSemanticTag("");
+				if (d.getFsn().endsWith(")")) {
+					d.setSemanticTag(d.getFsn().substring(d.getFsn().lastIndexOf("(") + 1, d.getFsn().length() - 1));
+				}
+				setIndexWords(d);
+                d.setRefsetIds(new ArrayList<String>());
+
+                // Refset index assumes that only active members are included in the db.
+                List<LightRefsetMembership> listLRM = simpleMembers.get(concept.getConceptId());
+                if (listLRM != null) {
+                    for (LightRefsetMembership lrm : listLRM) {
+                        d.getRefsetIds().add(lrm.getRefset());
+                    }
+                }
+                listLRM = simpleMapMembers.get(concept.getConceptId());
+                if (listLRM != null) {
+                    for (LightRefsetMembership lrm : listLRM) {
+                        d.getRefsetIds().add(lrm.getRefset());
+                    }
+                }
+                listLRM = assocMembers.get(concept.getConceptId());
+                if (listLRM != null) {
+                    for (LightRefsetMembership lrm : listLRM) {
+                        d.getRefsetIds().add(lrm.getRefset());
+                    }
+                }
+                listLRM = attrMembers.get(concept.getConceptId());
+                if (listLRM != null) {
+                    for (LightRefsetMembership lrm : listLRM) {
+                        d.getRefsetIds().add(lrm.getRefset());
+                    }
+                }
+
+				Document obj = Document.parse(gson.toJson(d));
+				snomedCollection.insertOne(obj);
+			}
+		}
 		for (String conceptId : tdefMembers.keySet()) {
 
 			count++;
@@ -1681,30 +1657,8 @@ public class TransformerDiskBased {
 
 				Document obj = Document.parse(gson.toJson(d));
 				snomedCollection.insertOne(obj);
-				// bw.append(gson.toJson(d).toString());
-				// bw.append(sep);
 			}
 		}
-
-		System.out.println("Starting creation of indexes");
-		List<IndexModel> list = new ArrayList<IndexModel>();
-		Document descriptionId = new Document();
-		descriptionId.append("descriptionId",1);
-
-		Document term1 = new Document();
-		term1.append("term", "text");
-
-		Document term2 = new Document();
-		term2.append("term", 1);
-
-		Document words = new Document();
-		words.append("words", 1);
-
-		list.add(new IndexModel(descriptionId));
-		list.add(new IndexModel(term1));
-		list.add(new IndexModel(term2));
-		list.add(new IndexModel(words));
-		snomedCollection.createIndexes(list);
 		
         System.out.println(".");
 		System.out.println(fileName + " Done");
@@ -1795,8 +1749,8 @@ public class TransformerDiskBased {
 		snomedCollection.insertOne(obj);
 
         // bw.append(gson.toJson(manifest).toString());
-
         // bw.close();
+		
         System.out.println(fileName + " Done");
     }
 
