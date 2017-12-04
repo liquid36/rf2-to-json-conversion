@@ -9,6 +9,11 @@ let apglib = require("apg-lib");
 let grammar = require('./grammar');
 let id = apglib.ids;
 
+
+/**
+ * Make AST from SNOMED Expression string
+ */
+
 function parseExpression (expression) {
     // Set basic APG Grammar
     
@@ -28,9 +33,16 @@ function parseExpression (expression) {
 }
 
 
-form = 'stated';
+/**
+ * Genera una mongo query a partir del AST de la expression
+ * @param {object} ast Arbol después del parser de la expressiń
+ * @param {object} options
+ * @param {string} options.form Tipo de la relacion (inferred or stated).
+ */
+
 class QueryBuilder {
-    constructor(ast) {
+    constructor(ast, options) {
+        this.form = options.form || 'inferred';
         this.expression = apglib.utils.charsToString(ast.string);
         this.ast = this.cleanTree(ast.tree);
         this.data = { $and:[] };
@@ -408,11 +420,20 @@ class QueryBuilder {
     };
 }
 
+
+/**
+ * All in-one function to convert expression to mongo query
+ */
+
 function makeMongoQuery(expression) {
     let ast = parseExpression('1234566'); 
     let builder = new QueryBuilder();
     return builder.exec();
 }
+
+/**
+ * Exports de functions
+ */
 
 var exports = module.exports = {};
 exports.makeMongoQuery = makeMongoQuery;
