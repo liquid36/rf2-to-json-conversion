@@ -426,7 +426,7 @@ class QueryBuilder {
  */
 
 function makeMongoQuery(expression) {
-    let ast = parseExpression('1234566'); 
+    let ast = parseExpression(expression); 
     let builder = new QueryBuilder();
     return builder.exec();
 }
