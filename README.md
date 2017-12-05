@@ -1,4 +1,4 @@
-# ANDES Conversion
+# ANDES SNOMED Conversion
 
 Primero de todo adquirir la base de datos de SNOMED, extensión en español y la extensión Neuquén. Preferentemente copiarlas a la carpeta 'data'.
 
